@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101713">
+  <meta name="description" content="Kalkulator simulasi serangan Clash of Clans secara manual, offline, dan tersimpan di perangkat.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>CoC Battle Calculator</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-mark" aria-hidden="true">⚔</div>
+      <div class="brand-copy"><strong>Battle Calculator</strong><span>TACTICAL SIMULATOR</span></div>
+      <div class="offline-pill"><i></i> Lokal</div>
+    </header>
+
+    <main id="main-content">
+      <section class="page active" id="page-calculator">
+        <div class="hero">
+          <div><p class="eyebrow">COMMAND CENTER</p><h1>Simulasi Serangan</h1><p class="muted">Atur pasukan, perjalanan, dan pertahanan secara manual.</p></div>
+          <div class="hero-emblem">♜</div>
+        </div>
+
+        <form id="calculator-form" autocomplete="off">
+          <section class="panel">
+            <div class="panel-heading"><span class="step">01</span><div><h2>Data pasukan</h2><p>Masukkan statistik gabungan kelompok.</p></div></div>
+            <div class="field-grid">
+              <label class="field full"><span>Nama kelompok pasukan</span><input id="troopName" type="text" value="Queen" placeholder="Contoh: Queen + Healer"></label>
+              <label class="field"><span>HP maksimum</span><input id="maxHp" type="number" min="0" step="any" inputmode="decimal" value="1730" required></label>
+              <label class="field"><span>HP awal</span><input id="startHp" type="number" min="0" step="any" inputmode="decimal" value="1730" required></label>
+              <label class="field"><span>Regenerasi (HP/detik)</span><input id="regen" type="number" min="0" step="any" inputmode="decimal" value="192" required></label>
+              <label class="field"><span>Total DPS pasukan</span><input id="troopDps" type="number" min="0" step="any" inputmode="decimal" value="485" required></label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading"><span class="step">02</span><div><h2>Data target</h2><p>Bangunan atau kelompok bangunan yang diserang.</p></div></div>
+            <div class="field-grid">
+              <label class="field full"><span>Nama target</span><input id="targetName" type="text" value="Bangunan target" placeholder="Contoh: Inferno Tower"></label>
+              <label class="field full"><span>Total HP bangunan</span><input id="buildingHp" type="number" min="0" step="any" inputmode="decimal" value="6600" required></label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading"><span class="step">03</span><div><h2>Fase perjalanan</h2><p>Tekanan pertahanan sebelum pasukan tiba.</p></div></div>
+            <div class="field-grid">
+              <label class="field"><span>Waktu perjalanan (detik)</span><input id="travelTime" type="number" min="0" step="any" inputmode="decimal" value="0" required></label>
+              <label class="field"><span>DPS pertahanan perjalanan</span><input id="travelDps" type="number" min="0" step="any" inputmode="decimal" value="0" required></label>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading"><span class="step">04</span><div><h2>Fase menyerang</h2><p>DPS pertahanan yang mengenai pasukan saat menyerang.</p></div></div>
+            <label class="field"><span>DPS pertahanan saat menyerang</span><input id="attackDefenseDps" type="number" min="0" step="any" inputmode="decimal" value="155" required></label>
+          </section>
+
+          <div class="action-row">
+            <button class="btn btn-primary" type="submit">⚔ Hitung simulasi</button>
+            <button class="btn btn-ghost" type="button" id="reset-btn">Atur ulang</button>
+          </div>
+        </form>
+
+        <section id="results" class="results hidden" aria-live="polite">
+          <div class="result-topline"><div><p class="eyebrow">SIMULATION REPORT</p><h2>Hasil simulasi</h2></div><span id="status-badge" class="status-badge">-</span></div>
+          <div class="summary-grid">
+            <article class="metric-card"><span>HP akhir pasukan</span><strong id="out-final-hp">-</strong><small id="out-final-hp-note">-</small></article>
+            <article class="metric-card"><span>HP bangunan tersisa</span><strong id="out-building-left">-</strong><small id="out-building-note">-</small></article>
+            <article class="metric-card"><span>Total waktu</span><strong id="out-total-time">-</strong><small>Perjalanan + menyerang</small></article>
+            <article class="metric-card"><span>Waktu menyerang</span><strong id="out-attack-time">-</strong><small id="out-attack-note">-</small></article>
+          </div>
+          <div class="panel result-panel">
+            <h3>Ringkasan fase perjalanan</h3>
+            <div class="result-line"><span>HP awal pasukan</span><b id="out-start-hp">-</b></div>
+            <div class="result-line"><span>Damage pertahanan</span><b id="out-travel-damage">-</b></div>
+            <div class="result-line"><span>Regenerasi kotor</span><b id="out-travel-regen">-</b></div>
+            <div class="result-line"><span>HP saat tiba</span><b id="out-arrival-hp">-</b></div>
+            <p id="travel-message" class="inline-note"></p>
+          </div>
+          <div class="panel result-panel">
+            <h3>Ringkasan fase menyerang</h3>
+            <div class="result-line"><span>Damage pertahanan</span><b id="out-attack-damage">-</b></div>
+            <div class="result-line"><span>Regenerasi kotor</span><b id="out-attack-regen">-</b></div>
+            <div class="result-line"><span>HP akhir pasukan</span><b id="out-attack-final-hp">-</b></div>
+            <div class="result-line"><span>HP bangunan tersisa</span><b id="out-attack-building-left">-</b></div>
+            <p id="attack-message" class="inline-note"></p>
+          </div>
+          <details class="panel calculation-details"><summary>Rincian perhitungan</summary><div id="calculation-breakdown"></div></details>
+          <div class="action-row"><button class="btn btn-primary" id="save-simulation" type="button">Simpan simulasi</button><button class="btn btn-ghost" id="analyze-now" type="button">Analisis bantuan</button></div>
+        </section>
+      </section>
+
+      <section class="page" id="page-history">
+        <div class="page-heading"><p class="eyebrow">ARSIP LOKAL</p><h1>Riwayat simulasi</h1><p class="muted">Tersimpan di browser perangkat ini.</p></div>
+        <div class="action-row"><button class="btn btn-secondary" id="export-history">Ekspor JSON</button><button class="btn btn-ghost" id="clear-history">Hapus semua</button></div>
+        <div id="history-list" class="stack-list"></div>
+      </section>
+
+      <section class="page" id="page-database">
+        <div class="page-heading"><p class="eyebrow">ARSIP STATISTIK</p><h1>Database manual</h1><p class="muted">Simpan statistik pasukan, bangunan, dan pertahanan versimu.</p></div>
+        <form id="database-form" class="panel">
+          <div class="field-grid">
+            <label class="field"><span>Jenis data</span><select id="dbType"><option value="troop">Pasukan</option><option value="building">Bangunan</option><option value="defense">Pertahanan</option></select></label>
+            <label class="field"><span>Nama data</span><input id="dbName" type="text" placeholder="Nama" required></label>
+            <label class="field"><span>HP (opsional)</span><input id="dbHp" type="number" min="0" step="any" inputmode="decimal"></label>
+            <label class="field"><span>DPS (opsional)</span><input id="dbDps" type="number" min="0" step="any" inputmode="decimal"></label>
+            <label class="field full"><span>Catatan (opsional)</span><input id="dbNotes" type="text" placeholder="Level, sumber, atau keterangan"></label>
+          </div>
+          <button class="btn btn-primary" type="submit">＋ Simpan ke database</button>
+        </form>
+        <div class="filter-row"><label class="field"><span>Filter</span><select id="dbFilter"><option value="all">Semua data</option><option value="troop">Pasukan</option><option value="building">Bangunan</option><option value="defense">Pertahanan</option></select></label></div>
+        <div id="database-list" class="stack-list"></div>
+      </section>
+
+      <section class="page" id="page-analysis">
+        <div class="page-heading"><p class="eyebrow">LOCAL RULE-BASED REVIEW</p><h1>Analisis bantuan</h1><p class="muted">Analisis berbasis aturan dari simulasi terakhir. Berjalan tanpa API dan tanpa internet.</p></div>
+        <div id="analysis-content" class="panel analysis-empty"><div class="empty-icon">⌁</div><h2>Belum ada hasil untuk dianalisis</h2><p>Jalankan kalkulator terlebih dahulu, lalu buka analisis bantuan.</p><button class="btn btn-primary" id="go-calc" type="button">Buka kalkulator</button></div>
+        <p class="disclaimer">Analisis ini bukan AI generatif dan bukan saran otomatis untuk memilih strategi. Periksa kembali angka serta kondisi base secara manual.</p>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navigasi utama">
+      <button class="nav-item active" data-page="calculator"><span>⌗</span><small>Kalkulator</small></button>
+      <button class="nav-item" data-page="history"><span>◷</span><small>Riwayat</small></button>
+      <button class="nav-item" data-page="database"><span>▤</span><small>Database</small></button>
+      <button class="nav-item" data-page="analysis"><span>⌁</span><small>Analisis</small></button>
+    </nav>
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="simulation.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
